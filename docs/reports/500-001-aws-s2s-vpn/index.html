@@ -1,341 +1,77 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>AWS Site-to-Site VPN PoC 検証報告書</title><meta name="description" content="Beyond3Consulting AWS Site-to-Site VPN PoC検証報告"><style>
-
-*{box-sizing:border-box}body{margin:0;background:#f5f7fa;color:#253648;font-family:"Meiryo","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;line-height:1.7}header{background:#192b42;color:#fff;padding:35px max(22px,calc((100vw - 1100px)/2)) 42px}header h1{font-size:clamp(25px,4vw,36px);line-height:1.35;margin:10px 0}header p{color:#cbd8e5}.brand{font-size:12px;letter-spacing:.14em;color:#aac1d5}main{max-width:1100px;padding:23px 18px 50px;margin:auto}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.stat,section{background:white;border:1px solid #dce4ed;border-radius:12px;box-shadow:0 3px 14px #152b3b0a}.stat{padding:19px}.stat small{display:block;color:#6c7d90}.stat strong{font-size:26px;color:#192b42}.stat em{display:block;color:#168267;font-size:12px;font-style:normal}section{margin-top:23px;padding:26px}h2{margin:4px 0 17px;font-size:21px}h3{font-size:16px}.sub{font-size:12px;letter-spacing:.1em;color:#687b8d;font-weight:700}.summary{background:#eff8f4;padding:15px 19px;border-left:4px solid #198566;border-radius:5px}.diagram{background:#f8fbfe;border:1px solid #dde6ee;border-radius:10px;padding:14px;overflow-x:auto}.diagram svg{width:100%;height:auto;min-width:610px;display:block}.table-wrap{overflow-x:auto}table{width:100%;min-width:630px;border-collapse:collapse;font-size:14px}th,td{padding:11px;border-bottom:1px solid #dfe7ee;text-align:left}th{background:#edf2f7}.ok{color:#198566;font-weight:700}.links{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.links a{padding:12px;border:1px solid #dfe7ee;border-radius:8px;text-decoration:none}a{color:#1e6798}.notice{font-size:13px;color:#66788b;padding:12px;background:#f4f6f8;border-radius:5px}footer{max-width:1100px;margin:auto;padding:0 18px 28px;font-size:12px;color:#687b8d}@media(max-width:750px){.stats{grid-template-columns:repeat(2,1fr)}.links{grid-template-columns:1fr}section{padding:18px}}@media print{body{background:white}section,.stat{box-shadow:none;break-inside:avoid}}
-.raw{background:#13263b;color:#e3edf5;white-space:pre;overflow:auto;padding:18px;border-radius:8px;font:12px/1.6 ui-monospace,Consolas,monospace;max-height:550px}details{margin-top:12px}summary{cursor:pointer;font-weight:700;padding:8px}button.copy{border:1px solid #b8c6d5;border-radius:6px;background:white;padding:6px 11px;cursor:pointer}</style><style>
-.logoheader{background:#fff;padding:13px max(22px,calc((100vw - 1100px)/2));display:flex;align-items:center;justify-content:space-between}.logoheader img{width:138px;height:auto;max-height:70px;object-fit:contain}.logoheader small{color:#51667a}.report-tabs{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:24px 0 8px}.report-tabs button{background:#fff;border:1px solid #ccd7e1;border-radius:24px;padding:11px 5px;color:#364f67;font-weight:700;cursor:pointer}.report-tabs button.active{background:#192b42;color:#fff}.report-panel[hidden]{display:none!important}.report-panel{display:block}.report-panel>section:first-child{margin-top:14px}.evidence-modal{position:fixed;inset:0;background:#111d2edb;z-index:1000;padding:4vh 5vw;display:none}.evidence-modal.open{display:block}.evidence-box{background:white;max-width:1200px;margin:auto;border-radius:12px;height:92vh;display:flex;flex-direction:column;padding:16px}.evidence-box pre{flex:1;overflow:auto;background:#13263b;color:#edf5fc;padding:15px;white-space:pre-wrap;font:12px/1.5 Consolas,monospace}.evidence-close{align-self:end;border:1px solid #ccd6df;background:white;border-radius:7px;padding:8px 15px;cursor:pointer}@media(max-width:800px){.report-tabs{grid-template-columns:repeat(3,1fr)}}@media print{.report-panel[hidden]{display:block!important}.report-tabs{display:none}}
-</style>
-<style>h2,h3,.stat strong,.report-tabs button,th{font-weight:700}body{letter-spacing:0;font-size:14px}h2{letter-spacing:0;font-size:20px}h3{font-size:15px}p,td{line-height:1.75}.report-panel section p{font-size:14px;line-height:1.8}.summary{font-size:14px}.notice{font-size:12px}.report-panel th,.report-panel td{font-size:13px}.diagram svg text{font-family:"Meiryo","Yu Gothic",sans-serif}</style>
-<style>.stats .stat{font-family:"Segoe UI","Meiryo",sans-serif}.stats .stat strong{font-family:"Segoe UI",Arial,"Meiryo",sans-serif;font-weight:700}.diagram svg text{font-family:"Meiryo","Yu Gothic",sans-serif;letter-spacing:0}.report-panel section{font-family:"Meiryo","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;font-size:14px;line-height:1.8}.report-panel section h2{font-size:22px;line-height:1.5;font-weight:700;margin:6px 0 24px;padding:0 0 14px;border-bottom:2px solid #dce5ef;letter-spacing:0}.report-panel section h3{font-size:18px;line-height:1.55;font-weight:700;margin:32px 0 14px;padding-left:12px;border-left:3px solid #9db3c7;letter-spacing:0}.report-panel section p{font-size:14px;line-height:1.9;margin:12px 0}.report-panel section .summary{font-size:14px;line-height:1.85}.report-panel section .notice{font-size:12px;line-height:1.75}.report-panel section th,.report-panel section td{font-size:13px;line-height:1.65}.report-panel section .sub{font-size:12px}.report-panel section .raw{font-size:12px;line-height:1.6}@media(max-width:750px){.report-panel section h2{font-size:20px}.report-panel section h3{font-size:17px}}<style>.overview-table{width:100%;table-layout:fixed;min-width:900px}.overview-table-wrap{margin-top:20px}.overview-table th{white-space:nowrap}.overview-table th,.overview-table td{overflow-wrap:normal;word-break:normal;vertical-align:middle}.overview-table td{font-variant-numeric:tabular-nums}.overview-table-wrap{overflow-x:auto}
-</style>
-<style>.report-tabs{grid-template-columns:repeat(5,1fr)}@media(max-width:800px){.report-tabs{grid-template-columns:repeat(3,1fr)}}
-.report-panel section h4{font-size:16px;line-height:1.55;font-weight:700;margin:26px 0 10px;color:#2a4560}
-.report-panel section h5{font-size:15px;line-height:1.55;font-weight:700;margin:20px 0 8px;color:#364f67}
-.report-panel section h6{font-size:14px;font-weight:700;margin:16px 0 6px;color:#364f67}
-.report-panel section ul,.report-panel section ol{font-size:14px;line-height:1.85;padding-left:22px}
-.report-panel section code{background:#eef2f6;padding:1px 5px;border-radius:4px;font:12.5px/1.6 ui-monospace,Consolas,monospace;word-break:break-all}
-.report-panel section pre.raw code{background:none;padding:0;color:inherit;word-break:normal}
-.report-panel>div.notice{margin-top:14px}.links a small{display:block;color:#66788b;margin-top:4px}
-.gallery{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}.gallery figure{margin:0;border:1px solid #dfe7ee;border-radius:8px;padding:10px;background:#fbfcfd}
-.gallery img{width:100%;height:auto;display:block;border:1px solid #dde6ee;border-radius:4px}.gallery figcaption{font-size:13px;line-height:1.7;margin-top:8px}.gallery .gnote{font-size:12px;color:#66788b;margin:4px 0 0}
-@media(max-width:750px){.gallery{grid-template-columns:1fr}}</style>
-
-<script>
-document.addEventListener('DOMContentLoaded',function(){
-const panels=Array.from(document.querySelectorAll('.report-panel'));
-const tabBtns=Array.from(document.querySelectorAll('.report-tabs button'));
-function select(n,anchor){panels.forEach((g,i)=>g.hidden=i!==n);tabBtns.forEach((b,i)=>{b.classList.toggle('active',i===n);b.setAttribute('aria-selected',String(i===n))});if(anchor){const el=document.getElementById(anchor);if(el)el.scrollIntoView();}else{window.scrollTo(0,0);}}
-tabBtns.forEach((b,i)=>b.onclick=()=>select(i));
-document.querySelectorAll('a[data-tab]').forEach(a=>{a.onclick=e=>{e.preventDefault();select(parseInt(a.dataset.tab,10),a.getAttribute('href').slice(1));}});
-document.querySelectorAll('main section > p').forEach(p=>{Array.from(p.childNodes).forEach(node=>{if(node.nodeType!==3||!node.textContent.includes('。'))return;const pieces=node.textContent.split(/(?<=。)/u);const frag=document.createDocumentFragment();pieces.forEach((piece,i)=>{if(i>0&&pieces[i-1].endsWith('。'))frag.appendChild(document.createElement('br'));frag.appendChild(document.createTextNode(piece))});node.replaceWith(frag)})});
-if(location.hash.length>1){const t=document.getElementById(decodeURIComponent(location.hash.slice(1)));if(t){const pi=panels.findIndex(g=>g.contains(t));if(pi>=0)select(pi,t.id);}}
-const modal=document.createElement('div');modal.className='evidence-modal';modal.innerHTML='<div class="evidence-box"><button class="evidence-close" type="button">閉じる</button><strong class="evidence-title"></strong><pre class="evidence-text"></pre></div>';document.body.appendChild(modal);modal.querySelector('button').onclick=()=>modal.classList.remove('open');modal.onclick=e=>{if(e.target===modal)modal.classList.remove('open')};
-document.querySelectorAll('a[href^="evidence/"]').forEach(a=>{const h=a.getAttribute('href');if(!/\.(txt|json)$/i.test(h))return;a.onclick=async e=>{e.preventDefault();modal.classList.add('open');modal.querySelector('.evidence-title').textContent=h;modal.querySelector('.evidence-text').textContent='読込中…';try{const res=await fetch(h);if(!res.ok)throw Error('HTTP '+res.status);modal.querySelector('.evidence-text').textContent=await res.text()}catch(err){modal.querySelector('.evidence-text').textContent='証跡の読み込みに失敗しました: '+err.message}}});
-});
-</script>
-</head><body><div class="logoheader"><img src="../../assets/logo/b3c_logo_transparent_black.png" alt="Beyond3Consulting 公式ロゴ"><small>TECHNICAL VALIDATION REPORT</small></div><header><div class="brand">BEYOND3CONSULTING / NETWORK VALIDATION</div><h1>AWS Site-to-Site VPN<br>PoC 検証報告書</h1><p>AWS Virtual Private Gateway × Yamaha Virtual Router vRX</p><p style="font-size:13px">W-500-0001 ｜ 検証日 2026年11月1日 ｜ ap-northeast-1 ｜ 検証環境は 2026年11月3日に削除済み</p></header><main><div class="stats"><div class="stat"><small>IPsec Tunnel 1</small><strong>UP</strong><em>IKEv2</em></div><div class="stat"><small>Ping A → B 成功率</small><strong>100%</strong><em>5送信 / 5受信・損失0%</em></div><div class="stat"><small>Ping B → A 成功率</small><strong>100%</strong><em>5送信 / 5受信・損失0%</em></div><div class="stat"><small>検証環境の片付け</small><strong>削除済み</strong><em>残存 0 件（2026-11-03）</em></div></div>
-<nav class="report-tabs" aria-label="報告書のページ"><button type="button" data-i="0" class="active" aria-selected="true">概要</button><button type="button" data-i="1">構成</button><button type="button" data-i="2">試験</button><button type="button" data-i="3">片付け</button><button type="button" data-i="4">証跡・添付</button></nav>
-<div class="report-panel" id="panel0"><section id="doc00"><div class="sub">EXECUTIVE SUMMARY</div><h2>00 検証サマリー — AWS Site-to-Site VPN PoC</h2><p>この文書で分かる事：検証の目的、結論、受入の条件 11 項目の達成状況。詳細は本ページの各タブを参照。</p>
-<p>検証日：2026-11-01（ap-northeast-1）</p>
-<h3>1. 検証の目的</h3>
-<p>AWS 東京リージョンに独立した 2 つの VPC（VPC-A：10.10.0.0/16、VPC-B：10.20.0.0/16）を作る。VPC-A を疑似オンプレミス拠点として VPN ルーター（Yamaha Virtual Router vRX）を置き、VPC-B の仮想プライベートゲートウェイ（VGW）と AWS Site-to-Site VPN（IPsec/IKEv2、静的ルーティング）で結ぶ。各 VPC に確認用 EC2 を 1 台ずつ置き、VPN 経由で双方向に Ping が通ることを確認する。あわせて Web コンソールと CLI での構築手順と、Cisco・Yamaha・Fortinet 向けの設定サンプルを整理する。</p>
-<h3>2. 結論</h3>
-<ul>
-<li>AWS Site-to-Site VPN は確立した。Tunnel1 が UP になり、EC2-A（10.10.1.10）と EC2-B（10.20.1.10）の間で双方向 Ping が 5/5 成功した（損失 0%）。通信が VPN ルーター（Yamaha vRX）を経由していることも、traceroute とルート表、トンネルのパケット数の増加（受信・送信とも 0→11、2026-11-03 取得）で確認した。</li>
-<li>Cisco と Fortinet の設定は参考データ（「証跡・添付」の設定情報）。</li>
-<li>Web コンソールでの操作手順の実機確認（T10）は未実施。CLI 手順は構築の実行記録があるが、再実行による確認は未実施（T09 は一部実施）。</li>
-<li>構築したリソースは 2026-11-03 に全て削除した（失敗 0 件）。Marketplace の購読の解約と IAM の利用者の削除も済み、削除後の残存は 0 件（「片付け」タブ）。</li>
-</ul>
-<h3>3. 受入の条件の達成状況</h3>
-<div class="table-wrap"><table>
-<thead>
-<tr>
-<th>#</th>
-<th>受入の条件</th>
-<th>判定</th>
-<th>未達の原因・補足</th>
-<th>現時点の結果</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>1</td>
-<td>2 VPC 構築</td>
-<td>達成</td>
-<td>-</td>
-<td>VPC-A（10.10.0.0/16）・VPC-B（10.20.0.0/16）を作成（「構成」タブ）</td>
-</tr>
-<tr>
-<td>2</td>
-<td>VPN ルーター（Yamaha vRX）の稼働</td>
-<td>達成</td>
-<td>-</td>
-<td>vRX（t3.medium）が稼働し、IPsec を確立（「構成」タブ、「証跡・添付」の設定情報）</td>
-</tr>
-<tr>
-<td>3</td>
-<td>S2S VPN 確立</td>
-<td>達成</td>
-<td>-</td>
-<td>Tunnel1 UP（試験 T02）</td>
-</tr>
-<tr>
-<td>4</td>
-<td>A→B Ping 成功</td>
-<td>達成</td>
-<td>-</td>
-<td>5/5、損失 0%（試験 T03）</td>
-</tr>
-<tr>
-<td>5</td>
-<td>B→A Ping 成功</td>
-<td>達成</td>
-<td>-</td>
-<td>5/5、損失 0%（試験 T04）</td>
-</tr>
-<tr>
-<td>6</td>
-<td>VPN 経由を確認</td>
-<td>達成</td>
-<td>-</td>
-<td>traceroute の 1 段目が VPN ルーター、ルート表がトンネル向き、パケット数が 0→11 に増加（試験 T07）</td>
-</tr>
-<tr>
-<td>7</td>
-<td>Web コンソールでの構築手順</td>
-<td>一部達成</td>
-<td>Web コンソールでの操作手順の実機確認は未実施（T10）。画面名の一部は公式文書で確認できていない</td>
-<td>-</td>
-</tr>
-<tr>
-<td>8</td>
-<td>CLI での構築手順</td>
-<td>一部達成</td>
-<td>構築は CLI で実施した記録がある。CLI 手順の再実行による確認は未実施（T09）。削除は 2026-11-03 に実行した（「片付け」タブ）</td>
-<td>-</td>
-</tr>
-<tr>
-<td>9</td>
-<td>3 社サンプル整理</td>
-<td>達成</td>
-<td>Cisco・Fortinet は参考データ</td>
-<td>「証跡・添付」の設定情報</td>
-</tr>
-<tr>
-<td>10</td>
-<td>結果と証跡の保存</td>
-<td>達成</td>
-<td>-</td>
-<td>「試験」「証跡・添付」タブ</td>
-</tr>
-<tr>
-<td>11</td>
-<td>削除対象の整理と削除</td>
-<td>達成</td>
-<td>-</td>
-<td>削除対象を整理し、2026-11-03 に削除。残存 0 件を確認（「片付け」タブ）</td>
-</tr>
-</tbody>
-</table></div>
-<p>未達・一部達成の項目は、上表のとおり原因と現時点の結果を記載した。完了とは言えない項目（7・8）がある。</p></section></div>
-<div class="report-panel" id="panel1" hidden><section id="doc01"><div class="sub">ARCHITECTURE</div><h2>01 構成（概要）</h2><h3>1. 構成</h3>
-<p>AWS 東京リージョンに VPC を 2 つ作る。VPC-A を疑似オンプレミス拠点（SITE-A）とし、VPN ルーター（Yamaha vRX）を置く。VPC-B（SITE-B）の仮想プライベートゲートウェイ（VGW）と IPsec で接続する。各 VPC に確認用 EC2 を 1 台ずつ置く。</p>
-<div class="diagram"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 395" role="img" aria-label="サイトBのAWS VGWとサイトAのYamaha vRXをIPsecトンネルで接続する構成図">
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AWS Site-to-Site VPN 検証報告書</title>
+<meta name="description" content="AWS Site-to-Site VPN と Yamaha vRX の接続検証の報告書">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f5f7fa;color:#253648;font-family:"Meiryo","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;line-height:1.8;font-size:15px}
+.logoheader{background:#fff;padding:13px max(22px,calc((100vw - 1000px)/2));display:flex;align-items:center;justify-content:space-between}
+.logoheader img{width:138px;height:auto;max-height:70px;object-fit:contain}
+.logoheader small{color:#51667a;letter-spacing:.08em}
+header.hero{background:#192b42;color:#fff;padding:32px max(22px,calc((100vw - 1000px)/2)) 38px}
+header.hero .brand{font-size:12px;letter-spacing:.14em;color:#aac1d5}
+header.hero h1{font-size:clamp(24px,4vw,34px);line-height:1.4;margin:10px 0 0}
+main{max-width:1000px;margin:0 auto;padding:22px 18px 50px}
+section,.intro,nav.toc{background:#fff;border:1px solid #dce4ed;border-radius:12px;box-shadow:0 3px 14px #152b3b0a;padding:24px 26px;margin-top:20px}
+section:empty{display:none}
+.intro .lead{margin:0 0 12px}
+.intro ul{margin:10px 0 0;padding-left:1.3em}
+nav.toc h2{font-size:16px;margin:0 0 8px;border:0;padding:0}
+nav.toc ol{margin:0;padding-left:1.4em;columns:2;column-gap:32px}
+h2{font-size:21px;line-height:1.5;margin:0 0 16px;padding-bottom:12px;border-bottom:2px solid #dce5ef}
+h3{font-size:17px;line-height:1.55;margin:28px 0 12px;padding-left:12px;border-left:3px solid #9db3c7}
+p{margin:10px 0}
+a{color:#1e6798}
+ul,ol{padding-left:1.4em}
+li{margin:4px 0}
+.table-wrap{overflow-x:auto;margin:14px 0}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px}
+th,td{padding:9px 11px;border-bottom:1px solid #dfe7ee;text-align:left;vertical-align:top;line-height:1.65}
+th{background:#edf2f7;white-space:nowrap}
+.raw{background:#13263b;color:#e3edf5;white-space:pre;overflow:auto;padding:16px 18px;border-radius:8px;font:12px/1.6 ui-monospace,Consolas,monospace;margin:12px 0}
+code{font-family:ui-monospace,Consolas,monospace;background:#edf2f7;padding:1px 4px;border-radius:3px;font-size:.92em}
+figure{margin:18px 0;text-align:center}
+figure img{max-width:100%;height:auto;border:1px solid #cfd9e3;border-radius:8px;display:block;margin:0 auto}
+figcaption{font-size:12.5px;color:#5b6e81;margin-top:8px;text-align:left}
+figure.diagram{background:#f8fbfe;border:1px solid #dde6ee;border-radius:10px;padding:14px}
+.svgwrap{overflow-x:auto}.svgwrap svg{width:100%;height:auto;min-width:610px;display:block}
+.svgwrap svg text{font-family:"Meiryo","Yu Gothic",sans-serif}
+footer{max-width:1000px;margin:0 auto;padding:0 18px 28px;font-size:12px;color:#687b8d}
+@media(max-width:750px){section,.intro,nav.toc{padding:18px}nav.toc ol{columns:1}}
+@media print{body{background:#fff}section,.intro,nav.toc{box-shadow:none}a[target]::after{content:none}}
+</style></head><body>
+<div class="logoheader"><img src="../../assets/logo/b3c_logo_transparent_black.png" alt="Beyond3Consulting 公式ロゴ"><small>TECHNICAL VALIDATION REPORT</small></div>
+<header class="hero"><div class="brand">BEYOND3CONSULTING / NETWORK VALIDATION</div><h1>AWS Site-to-Site VPN 検証報告書</h1></header>
+<main>
+<div class="intro"><p class="lead">拠点側の VPN ルーター（Yamaha Virtual Router vRX）と AWS の仮想プライベートゲートウェイを IPsec（通信を暗号化して結ぶ方式）で結び、双方向の通信ができるかを確かめた検証の報告書です。</p><ul><li>検証日：2026-11-01（一部の再取得は 2026-11-03）</li><li>リージョン：ap-northeast-1（東京）、アベイラビリティゾーン 1a</li><li>総合判定：10 項目中、合格 8・一部実施 1・未実施 1。実機で確かめる項目（T01〜T07）はすべて合格。冗長構成・BGP・負荷・長時間の安定性は未検証</li></ul></div>
+<nav class="toc" aria-label="目次"><h2>目次</h2><ol><li><a href="#s1">1. 目的</a></li><li><a href="#s2">2. 範囲と前提</a></li><li><a href="#s3">3. 構成</a></li><li><a href="#s4">4. 検証項目と合否基準</a></li><li><a href="#s5">5. 結果</a></li><li><a href="#s6">6. 評価と制約</a></li><li><a href="#s7">7. 結論と推奨</a></li><li><a href="#s8">8. 付録</a></li></ol></nav>
+<section id="s1"><h2>1. 目的</h2><p>拠点側の VPN ルーターに Yamaha vRX を使い、AWS Site-to-Site VPN（IPsec/IKEv2、静的ルーティング）で 2 つのネットワークが双方向に通信できるかを確かめる。採用を判断する人が、次の 3 点を判断できる材料を出す。</p><ol><li>この構成で VPN が確立し、双方向の通信が成立するか</li><li>通信が VPN を経由していると言えるか</li><li>本番に使う前に、何を追加で確かめる必要があるか</li></ol></section><section id="s2"><h2>2. 範囲と前提</h2><h3 id="s2-1">2-1. 範囲</h3><div class="table-wrap"><table><thead><tr><th>区分</th><th>内容</th></tr></thead><tbody><tr><td>検証した</td><td>VPN 接続の作成、トンネルの確立（IKE SA・IPsec SA。IKE SA は鍵交換の取り決め、IPsec SA は暗号化通信の取り決め。ESP は暗号化通信の方式）、両方向の疎通（Ping）、通信が VPN を経由している事の確認、メーカー別設定例の取得</td></tr><tr><td>参考データ</td><td>Cisco・Fortinet の設定例（AWS が配る設定サンプルを今回の条件に合わせた物。実機では確かめていない）</td></tr><tr><td>検証していない</td><td>冗長構成（Tunnel2 の利用と切替）、BGP、性能（帯域・遅延の変動）、長時間の安定性、障害時の挙動</td></tr></tbody></table></div><h3 id="s2-2">2-2. 前提</h3><ul><li>構成の条件：IPsec/IKEv2、静的ルーティング、事前共有鍵（PSK。両端で共有する合言葉）認証、VPN 接続 1 本（AWS が提供するトンネル 2 本のうち Tunnel1 のみ使用）。</li><li>BGP、Transit Gateway、VPC ピアリング、NAT ゲートウェイは使わない。</li><li>拠点側ルーターは Yamaha vRX（Amazon EC2 版 Rev.20.00.03、t3.medium）。AWS の VPN 機種一覧に vRX の項目は無いため、同社 RTX 向けの AWS サンプルを元に設定を作り、実機で確かめた。</li><li>検証環境は 2026-11-03 に削除済み。</li><li>公開にあたり、事前共有鍵、AWS アカウント ID、メールアドレス、管理者の接続元 IP は伏せた。検証用ネットワークの IP アドレスとリソース ID は実値のまま。</li></ul></section><section id="s3"><h2>3. 構成</h2><p>AWS 東京リージョンに独立した VPC を 2 つ作る。VPC-A を疑似オンプレミス拠点（SITE-A）とし、VPN ルーター（vRX）を置く。VPC-B（SITE-B）の仮想プライベートゲートウェイ（VGW）と IPsec で結ぶ。各 VPC に確認用の EC2 を 1 台ずつ置く。</p><div class="table-wrap"><table><thead><tr><th>区分</th><th>CIDR</th><th>主な構成要素</th></tr></thead><tbody><tr><td>VPC-A（SITE-A）</td><td>10.10.0.0/16</td><td>vRX（外向きの口 LAN1：10.10.0.10、Elastic IP 3.115.198.19。内向きの口 LAN2：10.10.1.5）、EC2-A（10.10.1.10）、インターネットゲートウェイ</td></tr><tr><td>VPC-B（SITE-B）</td><td>10.20.0.0/16</td><td>EC2-B（10.20.1.10）、仮想プライベートゲートウェイ</td></tr><tr><td>VPN 接続</td><td>-</td><td>Tunnel1 の AWS 側の外側 IP 13.196.38.153、トンネル内側 169.254.236.124/30。Tunnel2（54.150.250.168）は使わない</td></tr></tbody></table></div><p>暗号条件（実測した設定値）：IKEv2、Phase1・Phase2 とも AES256、整合 SHA2-256、DH グループ 14、DPD（相手の生存確認）の動作は restart、起動時の動作は add（vRX から開始）。</p><p>通信の経路（A から B）：EC2-A → VPC-A の非公開ルート表（10.20.0.0/16 の向け先は vRX の LAN2）→ vRX が IPsec で暗号化 → LAN1 から Elastic IP 経由でインターネット → AWS の VPN エンドポイント → VGW → VPC-B のルート表 → EC2-B。戻りは逆順。</p><figure class="diagram"><div class="svgwrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 395" role="img" aria-label="サイトBのAWS VGWとサイトAのYamaha vRXをIPsecトンネルで接続する構成図">
 <rect x="10" y="8" width="370" height="355" rx="12" fill="#eaf2fc" stroke="#85aacc" stroke-width="2"/><rect x="540" y="8" width="370" height="355" rx="12" fill="#fff0df" stroke="#d7ab7e" stroke-width="2"/>
 <text x="195" y="36" text-anchor="middle" fill="#245477" font-size="16" font-weight="bold">SITE-A / VPC-A</text><text x="195" y="57" text-anchor="middle" fill="#245477" font-size="14">10.10.0.0/16</text><text x="725" y="36" text-anchor="middle" fill="#91591f" font-size="16" font-weight="bold">SITE-B / VPC-B</text><text x="725" y="57" text-anchor="middle" fill="#91591f" font-size="14">10.20.0.0/16</text>
 <rect x="30" y="78" width="330" height="115" rx="9" fill="#d9eaf9" stroke="#b0cce3"/><text x="47" y="99" fill="#245477" font-size="12">Public Subnet 10.10.0.0/24</text><rect x="52" y="111" width="286" height="61" rx="7" fill="white" stroke="#85aacc"/><text x="195" y="137" text-anchor="middle" font-weight="bold" font-size="14" fill="#245477">Yamaha vRX</text><text x="195" y="157" text-anchor="middle" font-size="12" fill="#245477">LAN1 10.10.0.10 / EIP 3.115.198.19</text>
 <rect x="30" y="209" width="330" height="135" rx="9" fill="#d9eaf9" stroke="#b0cce3"/><text x="47" y="229" fill="#245477" font-size="12">Private Subnet 10.10.1.0/24</text><rect x="52" y="241" width="286" height="35" rx="6" fill="white" stroke="#85aacc"/><text x="195" y="264" text-anchor="middle" font-size="12" fill="#245477">vRX LAN2 10.10.1.5</text><rect x="52" y="289" width="286" height="39" rx="6" fill="white" stroke="#85aacc"/><text x="195" y="315" text-anchor="middle" font-size="12" font-weight="bold" fill="#245477">EC2-A 10.10.1.10</text><path d="M195 172V241M195 276V289" stroke="#87aacc" stroke-width="3"/>
 <rect x="560" y="78" width="330" height="115" rx="9" fill="#fae3c8" stroke="#dbb78f"/><text x="577" y="99" fill="#91591f" font-size="14">AWS Site-to-Site VPN</text><rect x="582" y="104" width="286" height="81" rx="7" fill="white" stroke="#d7ab7e"/><text x="725" y="131" text-anchor="middle" font-size="14" font-weight="bold" fill="#91591f">AWS VGW</text><text x="725" y="153" text-anchor="middle" font-size="12" fill="#91591f">Virtual Private Gateway</text><text x="725" y="173" text-anchor="middle" font-size="12" fill="#91591f">Tunnel 1: 13.196.38.153</text>
 <rect x="560" y="209" width="330" height="135" rx="9" fill="#fae3c8" stroke="#dbb78f"/><text x="577" y="229" fill="#91591f" font-size="12">Private Subnet 10.20.1.0/24</text><rect x="582" y="289" width="286" height="39" rx="6" fill="white" stroke="#d7ab7e"/><text x="725" y="315" text-anchor="middle" font-size="12" font-weight="bold" fill="#91591f">EC2-B 10.20.1.10</text><path d="M725 185V289" stroke="#d7ab7e" stroke-width="3"/>
-<path d="M338 141H582" stroke="#1a907e" stroke-width="4" stroke-dasharray="10 7"/><rect x="402" y="107" width="120" height="27" rx="7" fill="#daf4e9"/><text x="462" y="126" text-anchor="middle" font-size="14" font-weight="bold" fill="#146b59">IPsec Tunnel 1</text><path d="M338 308H582" stroke="#72879b" stroke-width="2" stroke-dasharray="5 6"/><rect x="435" y="280" width="57" height="23" rx="5" fill="#eef1f5"/><text x="464" y="297" text-anchor="middle" font-size="14" fill="#466076">Ping</text><text x="460" y="387" text-anchor="middle" font-size="12" fill="#64748b">論理構成図：IPsecはインターネットとAWS VPNエンドポイント経由</text></svg></div><p class="notice">論理構成図。vRX の LAN1/LAN2 は同一 EC2 の別 ENI。Ping 線は論理的な通信関係を示す。</p>
-<p>通信の経路（A から B）：EC2-A（10.10.1.10）→ VPC-A 非公開ルート表（10.20.0.0/16 の向け先は vRX の LAN2）→ vRX が IPsec で暗号化 → LAN1 から EIP 経由でインターネット → AWS の VPN エンドポイント → VGW → VPC-B ルート表 → EC2-B（10.20.1.10）。戻りは逆順。</p>
-<p>構成の条件：IPsec/IKEv2、VPN 接続 1 本（AWS 提供トンネル 2 本のうち Tunnel1 のみ使用）、静的ルーティング、事前共有鍵（PSK）認証。BGP・Transit Gateway・VPC Peering・NAT Gateway は使わない。</p></section></div>
-<div class="report-panel" id="panel2" hidden><section id="doc05"><div class="sub">TEST RESULTS</div><h2>05 PoC 試験結果（T01〜T10）</h2><p>この文書で分かる事：10 項目の試験の結果（合格・一部実施・未実施）と、その証跡の場所。VPN が UP になっただけでなく、Ping が通り、通信が VPN を経由していることを確認している。</p>
-<p>検証日：2026-11-01。出力の全文は「証跡・添付」の各ファイルにある（各ファイルの冒頭に取得日時・コマンド・実施した場所を記載）。PSK・口座番号・管理者 IP の値だけを伏せ字にしてある。</p>
-<h3>1. 結論</h3>
-<ul>
-<li>実接続の試験 T01〜T07 は合格。T05・T06 は VPN ルーター（Yamaha vRX）の IKE SA・IPsec SA で確認した。</li>
-<li>Ping は両方向とも 5/5、損失 0%。</li>
-<li>T08 は合格（Cisco・Fortinet は参考データ）。T09 は一部実施。T10 は<strong>未実施</strong>。</li>
-</ul>
-<h3>2. 試験結果の一覧</h3>
-<div class="table-wrap"><table>
-<thead>
-<tr>
-<th>試験</th>
-<th>試験項目</th>
-<th>合格条件</th>
-<th>結果</th>
-<th>判定</th>
-<th>実施時刻（2026-11-01）</th>
-<th>出力の要点</th>
-<th>証跡</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>T01</td>
-<td>VPN 接続作成</td>
-<td>作成される</td>
-<td>VPN 接続が available。Tunnel1 のオプション：IKEv2・AES256・SHA2-256・DH14</td>
-<td>合格</td>
-<td>作成 01:57:26（CloudTrail の CreateVpnConnection）。状態の確認 02:21:03</td>
-<td><code>describe-vpn-connections</code> で状態 available</td>
-<td><a href="evidence/T01_vpn_connection.txt">T01_vpn_connection.txt</a></td>
-</tr>
-<tr>
-<td>T02</td>
-<td>IPsec 確立</td>
-<td>Tunnel1 が UP</td>
-<td>Tunnel1 UP。Tunnel2 は DOWN（使わない設計）</td>
-<td>合格</td>
-<td>02:14:38</td>
-<td><code>"Status": "UP"</code>（Tunnel1）</td>
-<td><a href="evidence/T02_tunnel_status.txt">T02_tunnel_status.txt</a>、2026-11-03 の画面 <a href="evidence/screenshots/SS17_vpn_tunnel_details.png" target="_blank" rel="noopener noreferrer">SS17</a>（Tunnel1 アップ、Tunnel2 ダウン）</td>
-</tr>
-<tr>
-<td>T03</td>
-<td>EC2-A → EC2-B の Ping</td>
-<td>成功（EC2-A から 10.20.1.10 へ）</td>
-<td>5/5 受信、損失 0%</td>
-<td>合格</td>
-<td>02:14:28</td>
-<td><code>5 packets transmitted, 5 received, 0% packet loss</code></td>
-<td><a href="evidence/T03_ping_A_to_B.txt">T03_ping_A_to_B.txt</a></td>
-</tr>
-<tr>
-<td>T04</td>
-<td>EC2-B → EC2-A の Ping</td>
-<td>成功（EC2-B から 10.10.1.10 へ）</td>
-<td>5/5 受信、損失 0%</td>
-<td>合格</td>
-<td>02:14:33</td>
-<td><code>5 packets transmitted, 5 received, 0% packet loss</code></td>
-<td><a href="evidence/T04_ping_B_to_A.txt">T04_ping_B_to_A.txt</a></td>
-</tr>
-<tr>
-<td>T05</td>
-<td>vRX の IKE SA 確立</td>
-<td>IKE SA が確立</td>
-<td>IKE SA 1 本が確立</td>
-<td>合格</td>
-<td>02:14:40</td>
-<td><code>Total: isakmp:1 send:1 recv:1</code>、<code>トンネルインタフェースは接続されています</code></td>
-<td><a href="evidence/T05_T06_vrx_ipsec.txt">T05_T06_vrx_ipsec.txt</a></td>
-</tr>
-<tr>
-<td>T06</td>
-<td>vRX の IPsec SA 確立</td>
-<td>IPsec SA が確立</td>
-<td>ESP の送信・受信 SA が各 1 本確立</td>
-<td>合格</td>
-<td>02:14:40</td>
-<td>同上（<code>send:1 recv:1</code>）</td>
-<td><a href="evidence/T05_T06_vrx_ipsec.txt">T05_T06_vrx_ipsec.txt</a></td>
-</tr>
-<tr>
-<td>T07</td>
-<td>VPN 経由を確認</td>
-<td>通信が VPN を経由している</td>
-<td>traceroute の 1 段目が VPN ルーターの内側 IP、ルート表で 10.20.0.0/16 がトンネル向き、Ping の前後でトンネルのパケット数が増加（受信・送信とも 0→11、2026-11-03 の取り直し）</td>
-<td>合格</td>
-<td>02:14:38・02:14:40（traceroute・ルート表）。パケット数は 2026-11-03 17:41:18・17:41:50</td>
-<td><code>1  10.10.1.5  0.341 ms</code>（VPN ルーター）、2 段目 10.20.1.10。パケット数は <code>受信: (IPv4) 11 パケット</code>、<code>送信: (IPv4) 11 パケット</code></td>
-<td><a href="evidence/T07_route.txt">T07_route.txt</a>、パケット数 <a href="evidence/T07_section3_retake_20261103.txt">T07_section3_retake_20261103.txt</a></td>
-</tr>
-<tr>
-<td>T08</td>
-<td>3 メーカーの対応状況を確認</td>
-<td>対応状況を確認</td>
-<td>Yamaha RTX・Cisco CSRv・Fortinet FortiOS 6.4.4+ (GUI) のサンプルを取得。FortiOS 5.0+ は IKEv2 非対応で取得不可。Yamaha vRX は AWS の機種一覧に無い。Cisco・Fortinet は参考データ</td>
-<td>合格</td>
-<td>時刻の記録なし</td>
-<td><code>get-vpn-connection-device-types</code> の一覧、サンプル 3 本</td>
-<td><a href="evidence/T08_device_types.json">T08_device_types.json</a>、<a href="#appendix" data-tab="4">T08_samples</a></td>
-</tr>
-<tr>
-<td>T09</td>
-<td>CLI 手順の実行・確認結果を記録</td>
-<td>実行結果を記録</td>
-<td>CLI でリソースを作成し、describe で確認した記録がある。CLI 手順の再実行による確認は未実施</td>
-<td>一部実施</td>
-<td>構築中（時刻は実行記録に記載）</td>
-<td>VPC・サブネット・IGW・ルート表・SG・EC2・VPN 等の作成と確認</td>
-<td>なし（本書には含めない）</td>
-</tr>
-<tr>
-<td>T10</td>
-<td>Web 手順の操作手順と設定値を確認</td>
-<td>手順と設定値を確認</td>
-<td>Web コンソールでの操作手順の実機確認は未実施</td>
-<td><strong>未実施</strong></td>
-<td>-</td>
-<td>-</td>
-<td>なし</td>
-</tr>
-</tbody>
-</table></div>
-<h3>3. 実施した試験と、未実施の項目</h3>
-<div class="table-wrap"><table>
-<thead>
-<tr>
-<th>区分</th>
-<th>項目</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>実機・実環境で実施した</td>
-<td>T01、T02、T03、T04、T05、T06、T07</td>
-</tr>
-<tr>
-<td>参考データ</td>
-<td>T08 のサンプル。Cisco・Fortinet の設定（「証跡・添付」の設定情報）</td>
-</tr>
-<tr>
-<td>一部のみ実施</td>
-<td>T09（CLI で構築した記録はある。CLI 手順の再実行による確認は未実施）</td>
-</tr>
-<tr>
-<td>未実施</td>
-<td>T10（Web GUI の操作確認）、Yamaha vRX の GUI 手順</td>
-</tr>
-</tbody>
-</table></div>
-<h3>4. 取得日の違い</h3>
-<p>T01〜T09 の出力は 2026-11-01 の試験時の記録。次の点は 2026-11-03 に取得した。</p>
-<ul>
-<li>T07 のトンネルのパケット数：<a href="evidence/T07_section3_retake_20261103.txt">T07_section3_retake_20261103.txt</a>（2026-11-01 の記録はパケット数が取れていなかったため、同じ構成を起動して取り直した）。</li>
-<li>画面の証跡（SS17・SS09・SS10・SS04c の 4 枚）：2026-11-03 に取得。「証跡・添付」に載せた。</li>
-</ul></section></div>
-<div class="report-panel" id="panel3" hidden><section id="doc06"><div class="sub">CLEANUP</div><h2>片付け</h2><p>検証環境は 2026-11-03 に削除済み。AWS のリソースは 2026-11-03 18:44〜18:48（日本時間）に全て削除し（失敗 0 件）、削除後の残存確認はすべて 0 件だった。<br>Marketplace の購読は解約済みで、検証用の IAM の利用者・ポリシー・アクセスキーも削除済み。</p></section></div>
-<div class="report-panel" id="panel4" hidden><section id="evidence-top"><div class="sub">MATERIALS</div><h2>証跡・添付</h2>
-<h3>試験の出力（取得ログ）</h3>
-<p>各ファイルの冒頭に、取得日時・コマンド・実施した場所を記載している。PSK・管理者の IP・口座番号の値だけを伏せ字にしてある。</p>
-<div class="links">
-<a href="evidence/T01_vpn_connection.txt">T01 VPN 接続作成 ↗</a>
-<a href="evidence/T02_tunnel_status.txt">T02 IPsec 確立 ↗</a>
-<a href="evidence/T03_ping_A_to_B.txt">T03 EC2-A → EC2-B Ping ↗</a>
-<a href="evidence/T04_ping_B_to_A.txt">T04 EC2-B → EC2-A Ping ↗</a>
-<a href="evidence/T05_T06_vrx_ipsec.txt">T05・T06 IKE / IPsec SA ↗</a>
-<a href="evidence/T07_route.txt">T07 経路確認 ↗</a>
-<a href="evidence/T07_section3_retake_20261103.txt">T07 パケット数の取り直し（2026-11-03） ↗</a>
-<a href="evidence/T08_device_types.json">T08 機種一覧 ↗</a>
-</div>
-<h3 id="appendix">付録：設定情報（手動で設定が要る時に使う）</h3>
-<p>検証で使った設定を、ファイルとして添付している。PSK の値は伏せてある。取得時点（2026-11-01）の記録で、検証環境は 2026-11-03 に削除済み。</p>
-<div class="links">
-<a href="evidence/aws_vpn_connection_redacted.json">aws_vpn_connection_redacted.json ↗<br><small>AWS 側の VPN 接続の設定（暗号方式・トンネル・静的ルートなど）</small></a>
-<a href="evidence/vrx_show_config_redacted.txt">vrx_show_config_redacted.txt ↗<br><small>Yamaha vRX に入れた設定（実機の show config）</small></a>
-<a href="evidence/b3c-500-poc-policy-v3.json">b3c-500-poc-policy-v3.json ↗<br><small>検証用 IAM 利用者 b3c-500-poc-cli に付けたカスタマーポリシー（b3c-500-poc-policy）。ほかに AWS 管理ポリシー 2 つ（AmazonEC2FullAccess・EC2InstanceConnect）を付けた</small></a>
-<a href="evidence/T08_samples/yamaha_e7a2d626_redacted.txt">yamaha_e7a2d626_redacted.txt ↗<br><small>Yamaha RTX の設定例（AWS が配るサンプル）</small></a>
-<a href="evidence/T08_samples/cisco_csrv_7b754310_redacted.txt">cisco_csrv_7b754310_redacted.txt ↗<br><small>Cisco CSRv の設定例（参考・実機未検証）</small></a>
-<a href="evidence/T08_samples/fortinet_7125681a_redacted.txt">fortinet_7125681a_redacted.txt ↗<br><small>Fortinet の設定例（参考・実機未検証）</small></a>
-</div>
-<p class="notice">Cisco・Fortinet の設定例は参考データで、実機では試していない。Yamaha RTX の設定例も AWS が配るサンプルで、検証に使った vRX の設定は上の vrx_show_config_redacted.txt。</p>
-<h3 id="gallery">画面の証跡（AWS コンソール）</h3><p>結論の裏づけになる画面 4 枚。口座番号・メールアドレス・管理者の IP・本検証以外のリソースの表示は黒塗りしてある。画像を押すと原寸で開く。</p><div class="gallery">
-<figure id="SS17"><a href="evidence/screenshots/SS17_vpn_tunnel_details.png" target="_blank" rel="noopener noreferrer"><img loading="lazy" src="evidence/screenshots/SS17_vpn_tunnel_details.png" alt="SS17 VPN 接続のトンネルの詳細（Tunnel1 アップ、Tunnel2 ダウン）" width="640" height="270"></a><figcaption><b>SS17</b> VPN 接続のトンネルの詳細（Tunnel1 アップ、Tunnel2 ダウン）<p class="gnote">試験 T02 の裏づけ。2026-11-03 に撮った画面。</p></figcaption></figure>
-<figure id="SS09"><a href="evidence/screenshots/SS09_customer_gateways.png" target="_blank" rel="noopener noreferrer"><img loading="lazy" src="evidence/screenshots/SS09_customer_gateways.png" alt="SS09 カスタマーゲートウェイ" width="640" height="270"></a><figcaption><b>SS09</b> カスタマーゲートウェイ<p class="gnote">お客様側の機器として VPN ルーター（vRX）を登録した設定。</p></figcaption></figure>
-<figure id="SS10"><a href="evidence/screenshots/SS10_virtual_private_gateways.png" target="_blank" rel="noopener noreferrer"><img loading="lazy" src="evidence/screenshots/SS10_virtual_private_gateways.png" alt="SS10 仮想プライベートゲートウェイ（VGW）" width="640" height="270"></a><figcaption><b>SS10</b> 仮想プライベートゲートウェイ（VGW）<p class="gnote">AWS 側の VPN の口。</p></figcaption></figure>
-<figure id="SS04c"><a href="evidence/screenshots/SS04c_rtb_b_private_routes.png" target="_blank" rel="noopener noreferrer"><img loading="lazy" src="evidence/screenshots/SS04c_rtb_b_private_routes.png" alt="SS04c VPC-B の非公開ルート表のルート" width="640" height="270"></a><figcaption><b>SS04c</b> VPC-B の非公開ルート表のルート<p class="gnote">10.10.0.0/16 の向け先が VGW（VPN 経由の経路）。</p></figcaption></figure>
-</div></section></div>
-</main><footer>Beyond3Consulting · W-500-0001 · 検証日 2026-11-01<br>本報告は検証時点の記録で、検証環境は 2026-11-03 に削除済み。</footer></body></html>
+<path d="M338 141H582" stroke="#1a907e" stroke-width="4" stroke-dasharray="10 7"/><rect x="402" y="107" width="120" height="27" rx="7" fill="#daf4e9"/><text x="462" y="126" text-anchor="middle" font-size="14" font-weight="bold" fill="#146b59">IPsec Tunnel 1</text><path d="M338 308H582" stroke="#72879b" stroke-width="2" stroke-dasharray="5 6"/><rect x="435" y="280" width="57" height="23" rx="5" fill="#eef1f5"/><text x="464" y="297" text-anchor="middle" font-size="14" fill="#466076">Ping</text><text x="460" y="387" text-anchor="middle" font-size="12" fill="#64748b">論理構成図：IPsecはインターネットとAWS VPNエンドポイント経由</text></svg></div><figcaption>図：検証の構成（論理構成図。IPsec はインターネットと AWS の VPN エンドポイントを経由する。vRX の LAN1 と LAN2 は同じ EC2 の別のネットワークインタフェース）</figcaption></figure><h3 id="s3-1">3-1. お客様側の機器の登録（カスタマーゲートウェイ）</h3><p>拠点側ルーターの外側 IP（3.115.198.19）を AWS に登録した。状態は「利用可能」、タイプは ipsec.1。画面の ASN は BGP 用の値で、本構成（静的ルーティング）では使っていない。</p><figure><a href="evidence/screenshots/SS09_customer_gateways.png" target="_blank" rel="noopener" title="クリックで原寸を開く"><img src="evidence/screenshots/SS09_customer_gateways.png" alt="カスタマーゲートウェイ一覧。b3c-500-poc-cgw が利用可能、IP アドレス 3.115.198.19" loading="lazy"></a><figcaption>カスタマーゲートウェイ一覧。b3c-500-poc-cgw が利用可能、IP アドレス 3.115.198.19（クリックで原寸を開く）</figcaption></figure><h3 id="s3-2">3-2. AWS 側の VPN の口（仮想プライベートゲートウェイ）</h3><p>VPC-B に接続した VGW。状態は「利用可能」、VPC アタッチ状態は「アタッチ済み」。画面の ASN は BGP 用の値で、本構成（静的ルーティング）では使っていない。</p><figure><a href="evidence/screenshots/SS10_virtual_private_gateways.png" target="_blank" rel="noopener" title="クリックで原寸を開く"><img src="evidence/screenshots/SS10_virtual_private_gateways.png" alt="仮想プライベートゲートウェイ一覧。b3c-500-poc-vgw が利用可能・アタッチ済み" loading="lazy"></a><figcaption>仮想プライベートゲートウェイ一覧。b3c-500-poc-vgw が利用可能・アタッチ済み（クリックで原寸を開く）</figcaption></figure></section><section id="s4"><h2>4. 検証項目と合否基準</h2><div class="table-wrap"><table><thead><tr><th>項目</th><th>検証内容</th><th>合否基準</th></tr></thead><tbody><tr><td>T01</td><td>VPN 接続の作成</td><td>VPN 接続が作成され、状態が available になる</td></tr><tr><td>T02</td><td>IPsec の確立</td><td>Tunnel1 が UP になる</td></tr><tr><td>T03</td><td>EC2-A から EC2-B への Ping</td><td>成功する</td></tr><tr><td>T04</td><td>EC2-B から EC2-A への Ping</td><td>成功する</td></tr><tr><td>T05</td><td>vRX の IKE SA の確立</td><td>IKE SA が確立している</td></tr><tr><td>T06</td><td>vRX の IPsec SA の確立</td><td>IPsec SA（ESP の送信・受信）が確立している</td></tr><tr><td>T07</td><td>通信が VPN を経由している事</td><td>経路・ルート表・パケット数のいずれでも VPN 経由と読み取れる</td></tr><tr><td>T08</td><td>3 メーカーの対応状況の確認</td><td>AWS が配る設定サンプルの対応状況を確認できる</td></tr><tr><td>T09</td><td>AWS CLI による構築の記録</td><td>構築と確認の実行結果が記録されている</td></tr><tr><td>T10</td><td>AWS コンソールでの設定の確認</td><td>コンソール上で設定値を確認できる</td></tr></tbody></table></div><p>判定は「合格」「一部実施」「未実施」の 3 区分とする。</p></section><section id="s5"><h2>5. 結果</h2><h3 id="s5-1">5-1. 一覧</h3><p>Ping と vRX の結果は端末の出力のため、取得ログの抜粋で示す（5-3、5-4、5-5）。</p><div class="table-wrap"><table><thead><tr><th>項目</th><th>実測の値</th><th>判定</th><th>証跡</th></tr></thead><tbody><tr><td>T01</td><td>VPN 接続が available。Tunnel1 のオプションは IKEv2・AES256・SHA2-256・DH14</td><td>合格</td><td><a href="evidence/T01_vpn_connection.txt" target="_blank" rel="noopener">T01_vpn_connection.txt</a></td></tr><tr><td>T02</td><td>Tunnel1 が UP、Tunnel2 は DOWN（使わない構成）</td><td>合格</td><td><a href="evidence/T02_tunnel_status.txt" target="_blank" rel="noopener">T02_tunnel_status.txt</a>、5-2 の画像</td></tr><tr><td>T03</td><td>5 回送信・5 回受信、損失 0%、平均 3.877 ms（最小 3.848・最大 3.895）</td><td>合格</td><td><a href="evidence/T03_ping_A_to_B.txt" target="_blank" rel="noopener">T03_ping_A_to_B.txt</a>、5-3 の抜粋</td></tr><tr><td>T04</td><td>5 回送信・5 回受信、損失 0%、平均 3.881 ms（最小 3.637・最大 4.016）</td><td>合格</td><td><a href="evidence/T04_ping_B_to_A.txt" target="_blank" rel="noopener">T04_ping_B_to_A.txt</a>、5-3 の抜粋</td></tr><tr><td>T05</td><td>IKE SA 1 本が確立（isakmp:1）。トンネルインタフェースは接続済み</td><td>合格</td><td><a href="evidence/T05_T06_vrx_ipsec.txt" target="_blank" rel="noopener">T05_T06_vrx_ipsec.txt</a>、5-4 の抜粋</td></tr><tr><td>T06</td><td>ESP の送信 SA・受信 SA が各 1 本確立（send:1 recv:1）</td><td>合格</td><td><a href="evidence/T05_T06_vrx_ipsec.txt" target="_blank" rel="noopener">T05_T06_vrx_ipsec.txt</a>、5-4 の抜粋</td></tr><tr><td>T07</td><td>traceroute の 1 段目が vRX（10.10.1.5、0.341 ms）、2 段目が EC2-B。ルート表で 10.20.0.0/16 がトンネル向き。Ping と traceroute の前後でトンネルのパケット数が受信・送信とも 0 から 11 に増加</td><td>合格</td><td><a href="evidence/T07_route.txt" target="_blank" rel="noopener">T07_route.txt</a>、<a href="evidence/T07_section3_retake_20261103.txt" target="_blank" rel="noopener">T07_section3_retake_20261103.txt</a>、5-5 の画像と抜粋</td></tr><tr><td>T08</td><td>Yamaha RTX・Cisco CSRv・Fortinet FortiOS 6.4.4+ の設定サンプルを取得。FortiOS 5.0+ は IKEv2 非対応で取得できない。Yamaha vRX は AWS の機種一覧に無い</td><td>合格（Cisco・Fortinet は参考データ）</td><td><a href="evidence/T08_device_types.json" target="_blank" rel="noopener">T08_device_types.json</a>、付録 B</td></tr><tr><td>T09</td><td>AWS CLI で構築し、describe で確認した記録がある。記録と同じ内容の再実行と突き合わせは未実施</td><td>一部実施</td><td>なし</td></tr><tr><td>T10</td><td>AWS コンソールでの設定値の確認は行っていない</td><td>未実施</td><td>なし</td></tr></tbody></table></div><h3 id="s5-2">5-2. トンネルの確立（T02）</h3><p>VPN 接続の詳細画面。Tunnel1 が「アップ」、Tunnel2 が「ダウン」。Tunnel2 は使わない構成のため、ダウンは想定どおり。2026-11-01 の取得結果は T02 のログにあり、同じく Tunnel1 が UP、Tunnel2 が DOWN。</p><figure><a href="evidence/screenshots/SS17_vpn_tunnel_details.png" target="_blank" rel="noopener" title="クリックで原寸を開く"><img src="evidence/screenshots/SS17_vpn_tunnel_details.png" alt="VPN 接続のトンネルの状態。Tunnel1 がアップ、Tunnel2 がダウン" loading="lazy"></a><figcaption>VPN 接続のトンネルの状態。Tunnel1 がアップ、Tunnel2 がダウン（クリックで原寸を開く）</figcaption></figure><h3 id="s5-3">5-3. 疎通（T03・T04）</h3><p>取得ログの抜粋。損失 0%、往復の平均はどちらも 3.9 ms 前後。</p><p>T03（EC2-A から 10.20.1.10 へ）</p><pre class="raw">…
+5 packets transmitted, 5 received, 0% packet loss, time 4008ms
+rtt min/avg/max/mdev = 3.848/3.877/3.895/0.016 ms</pre><p>T04（EC2-B から 10.10.1.10 へ）</p><pre class="raw">…
+5 packets transmitted, 5 received, 0% packet loss, time 4005ms
+rtt min/avg/max/mdev = 3.637/3.881/4.016/0.134 ms</pre><h3 id="s5-4">5-4. vRX の SA（T05・T06）</h3><p>取得ログの抜粋（vRX の <code>show ipsec sa</code>）。IKE SA が 1 本（isakmp:1）、ESP の送信 SA と受信 SA が各 1 本（send:1 recv:1）。</p><pre class="raw">…
+Total: isakmp:1 send:1 recv:1
+…
+1     1    -     ike           -    28451   13.196.38.153
+2     1    1     tun[0001]esp  send 3251    13.196.38.153
+3     1    1     tun[0001]esp  recv 3251    13.196.38.153</pre><h3 id="s5-5">5-5. 経路（T07）</h3><p>VPC-B のルート表。10.10.0.0/16（VPC-A 側）の向け先が VGW になっており、状態は「アクティブ」。VPC-B から VPC-A 宛ての通信（戻り）も VGW に向く設定である事を示す。</p><figure><a href="evidence/screenshots/SS04c_rtb_b_private_routes.png" target="_blank" rel="noopener" title="クリックで原寸を開く"><img src="evidence/screenshots/SS04c_rtb_b_private_routes.png" alt="VPC-B のルート表。10.10.0.0/16 の向け先が仮想プライベートゲートウェイ、10.20.0.0/16 が local" loading="lazy"></a><figcaption>VPC-B のルート表。10.10.0.0/16 の向け先が仮想プライベートゲートウェイ、10.20.0.0/16 が local（クリックで原寸を開く）</figcaption></figure><p>取得ログの抜粋（vRX の <code>show status tunnel 1</code>。Ping と traceroute の前後）。トンネルの受信・送信パケット数が 0 から 11 に増えた。</p><pre class="raw">[前] vRX show status tunnel 1
+…
+  受信: (IPv4) 0 パケット [0 オクテット]
+…
+  送信: (IPv4) 0 パケット [0 オクテット]
+…
+[後] vRX show status tunnel 1
+…
+  受信: (IPv4) 11 パケット [780 オクテット]
+…
+  送信: (IPv4) 11 パケット [780 オクテット]</pre><h3 id="s5-6">5-6. 取得日</h3><p>T07 のパケット数と画面の画像は 2026-11-03 の取得。ほかは 2026-11-01 の取得。</p></section><section id="s6"><h2>6. 評価と制約</h2><h3 id="s6-1">6-1. 評価</h3><ul><li>検証した範囲では、この構成（vRX と AWS VGW、IKEv2、静的ルーティング、Tunnel1 のみ）で VPN が確立し、双方向の通信が損失なく通る。</li><li>通信が VPN を通っている事は、traceroute の経路、ルート表、Ping と traceroute の前後のパケット数の増加の 3 点で一致している。</li><li>往復の遅延は 4 ms 前後（同一リージョン内の 2 拠点間）。</li></ul><h3 id="s6-2">6-2. 制約・未検証</h3><div class="table-wrap"><table><thead><tr><th>項目</th><th>言えない事</th></tr></thead><tbody><tr><td>冗長構成</td><td>Tunnel2 を使った構成と、Tunnel1 の障害時の切替は検証していない。冗長性は評価できない</td></tr><tr><td>BGP</td><td>静的ルーティングのみ。BGP による経路交換は検証していない</td></tr><tr><td>性能・長時間の安定性</td><td>Ping は各方向 5 回。帯域、負荷時の遅延、長時間の接続維持は測っていない</td></tr><tr><td>構成の範囲</td><td>単一のアベイラビリティゾーン。拠点側も AWS 内に置いた疑似環境で、実際の拠点回線・NAT 機器・ファイアウォールを経由していない</td></tr><tr><td>vRX の位置づけ</td><td>vRX は AWS の VPN 機種一覧に無い。AWS のサンプルの対象外の機種で、サポートの扱いは未確認</td></tr><tr><td>Cisco・Fortinet</td><td>設定例は参考データで、実機では確かめていない</td></tr><tr><td>T09・T10</td><td>T09 は構築の記録があるが、同じ内容での再実行は未実施。T10 は未実施</td></tr></tbody></table></div></section><section id="s7"><h2>7. 結論と推奨</h2><h3 id="s7-1">7-1. 結論</h3><p>接続性（IPsec の確立と双方向の疎通）については、この構成で成立することを確認した。T01〜T07 は合格。冗長構成・実回線・性能は未確認のため、採用の可否は追加の確認の結果を見て判断する。</p><h3 id="s7-2">7-2. 推奨</h3><ul><li>接続性の確認としては、採用の検討を進めてよい。</li><li>本番で使う前に、次の項目を追加で確かめる事を推奨する。<ol><li>冗長構成：Tunnel2 を使った構成と、Tunnel1 を止めた時の切替</li><li>実際の拠点回線での接続（NAT 機器・ファイアウォールの内側に置いた場合を含む）</li><li>性能：想定する帯域での遅延・損失、数日間以上の接続維持</li><li>経路の運用方式：静的ルーティングで足りるか、BGP が要るか</li><li>Cisco・Fortinet を使う場合は、それぞれの実機での確認</li><li>Yamaha・AWS 側の対応（サポート）の確認</li></ol></li><li>追加の確認には環境の再構築が要る。</li></ul></section><section id="s8"><h2>8. 付録</h2><p>リンク先の内容は本文に写していない。</p><h3 id="sA">A. 証跡（取得ログ）</h3><div class="table-wrap"><table><thead><tr><th>項目</th><th>ファイル</th></tr></thead><tbody><tr><td>T01</td><td><a href="evidence/T01_vpn_connection.txt" target="_blank" rel="noopener">T01_vpn_connection.txt</a></td></tr><tr><td>T02</td><td><a href="evidence/T02_tunnel_status.txt" target="_blank" rel="noopener">T02_tunnel_status.txt</a></td></tr><tr><td>T03</td><td><a href="evidence/T03_ping_A_to_B.txt" target="_blank" rel="noopener">T03_ping_A_to_B.txt</a></td></tr><tr><td>T04</td><td><a href="evidence/T04_ping_B_to_A.txt" target="_blank" rel="noopener">T04_ping_B_to_A.txt</a></td></tr><tr><td>T05・T06</td><td><a href="evidence/T05_T06_vrx_ipsec.txt" target="_blank" rel="noopener">T05_T06_vrx_ipsec.txt</a></td></tr><tr><td>T07</td><td><a href="evidence/T07_route.txt" target="_blank" rel="noopener">T07_route.txt</a>、<a href="evidence/T07_section3_retake_20261103.txt" target="_blank" rel="noopener">T07_section3_retake_20261103.txt</a></td></tr><tr><td>T08</td><td><a href="evidence/T08_device_types.json" target="_blank" rel="noopener">T08_device_types.json</a></td></tr></tbody></table></div><h3 id="sB">B. 設定情報（手動で設定が要る時に使う）</h3><div class="table-wrap"><table><thead><tr><th>内容</th><th>ファイル</th></tr></thead><tbody><tr><td>AWS の VPN 接続の設定（JSON）</td><td><a href="evidence/aws_vpn_connection_redacted.json" target="_blank" rel="noopener">aws_vpn_connection_redacted.json</a></td></tr><tr><td>vRX の設定（show config）</td><td><a href="evidence/vrx_show_config_redacted.txt" target="_blank" rel="noopener">vrx_show_config_redacted.txt</a></td></tr><tr><td>AWS の設定例：Yamaha RTX</td><td><a href="evidence/T08_samples/yamaha_e7a2d626_redacted.txt" target="_blank" rel="noopener">yamaha_e7a2d626_redacted.txt</a></td></tr><tr><td>AWS の設定例：Cisco CSRv（参考データ）</td><td><a href="evidence/T08_samples/cisco_csrv_7b754310_redacted.txt" target="_blank" rel="noopener">cisco_csrv_7b754310_redacted.txt</a></td></tr><tr><td>AWS の設定例：Fortinet FortiOS 6.4.4+（参考データ）</td><td><a href="evidence/T08_samples/fortinet_7125681a_redacted.txt" target="_blank" rel="noopener">fortinet_7125681a_redacted.txt</a></td></tr><tr><td>IAM ポリシー</td><td><a href="evidence/b3c-500-poc-policy-v3.json" target="_blank" rel="noopener">b3c-500-poc-policy-v3.json</a></td></tr></tbody></table></div></section>
+</main>
+<footer>Beyond3Consulting</footer>
+</body></html>
