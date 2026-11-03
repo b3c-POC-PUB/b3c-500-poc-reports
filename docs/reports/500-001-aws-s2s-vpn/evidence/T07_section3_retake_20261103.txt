@@ -1,0 +1,75 @@
+試験: T07 [3] の取り直し（ping 5 回 + traceroute の前後のトンネルのパケット数）
+取得日時: 2026-11-03 17:41:18〜17:41:50 JST（節ごとに下記）
+どこで: vRX（show status tunnel 1）、EC2-A（ping・traceroute）。作業 PC から EC2 Instance Connect Endpoint（<EIC_ENDPOINT_ID>）の open-tunnel と ssh で入って実行
+コマンド: vRX＝console lines infinity / show status tunnel 1、EC2-A＝ping -c 5 10.20.1.10 / sudo traceroute -I -n -m 3 10.20.1.10
+理由: 元の T07_route.txt の [3] は画面送りで途切れ、パケット数が入っていなかった（元のファイルは書き換えていない）。今回は console lines infinity で画面送りを止めた。
+条件: 3 台を 17:36:34 に起動、17:39:22 に 3 台 running・状態チェック ok、Tunnel1 UP（2026-11-03 17:38:23 JST から）。取得後 17:42:35 に 3 台を停止。
+伏せ字: なし（PSK・パスワード・口座番号はこの出力に含まれない）。出力は未加工（改行コードと空行と ssh の known hosts の警告行だけ除いた）。
+----------------------------------------------------------------------
+[前] vRX show status tunnel 1
+取得 2026-11-03 17:41:18 JST
+> console lines infinity
+> show status tunnel 1
+TUNNEL[1]: 
+説明: 
+  インタフェースの種類: IPsec
+  トンネルインタフェースは接続されています
+  開始: 2026/11/03 17:37:10
+  通信時間: 4分13秒
+  最大パケット長(MTU):
+         IPv4: 1280 オクテット
+         IPv6: 1280 オクテット
+  受信: (IPv4) 0 パケット [0 オクテット]
+        (IPv6) 0 パケット [0 オクテット]
+  送信: (IPv4) 0 パケット [0 オクテット]
+        (IPv6) 0 パケット [0 オクテット]
+  IKEキープアライブ:
+           [タイプ]: rfc4306
+             [状態]: OK
+         [次の送信]: 4 秒後
+> exit  
+Connection to 10.10.1.5 closed.
+
+[ping・traceroute] EC2-A（10.10.1.10）
+取得 2026-11-03 17:41:41 JST
+$ ping -c 5 10.20.1.10
+PING 10.20.1.10 (10.20.1.10) 56(84) bytes of data.
+64 bytes from 10.20.1.10: icmp_seq=1 ttl=126 time=5.30 ms
+64 bytes from 10.20.1.10: icmp_seq=2 ttl=126 time=3.87 ms
+64 bytes from 10.20.1.10: icmp_seq=3 ttl=126 time=3.58 ms
+64 bytes from 10.20.1.10: icmp_seq=4 ttl=126 time=3.62 ms
+64 bytes from 10.20.1.10: icmp_seq=5 ttl=126 time=4.09 ms
+--- 10.20.1.10 ping statistics ---
+5 packets transmitted, 5 received, 0% packet loss, time 4007ms
+rtt min/avg/max/mdev = 3.582/4.094/5.304/0.631 ms
+$ sudo traceroute -I -n -m 3 10.20.1.10
+traceroute to 10.20.1.10 (10.20.1.10), 3 hops max, 60 byte packets
+ 1  10.10.1.5  0.433 ms  0.415 ms  0.412 ms
+ 2  10.20.1.10  3.903 ms  3.900 ms  3.897 ms
+終了 2026-11-03 17:41:50 JST
+
+[後] vRX show status tunnel 1
+取得 2026-11-03 17:41:50 JST
+> console lines infinity
+> show status tunnel 1
+TUNNEL[1]: 
+説明: 
+  インタフェースの種類: IPsec
+  トンネルインタフェースは接続されています
+  開始: 2026/11/03 17:37:10
+  通信時間: 4分43秒
+  最大パケット長(MTU):
+         IPv4: 1280 オクテット
+         IPv6: 1280 オクテット
+  受信: (IPv4) 11 パケット [780 オクテット]
+        (IPv6) 0 パケット [0 オクテット]
+  送信: (IPv4) 11 パケット [780 オクテット]
+        (IPv6) 0 パケット [0 オクテット]
+  IKEキープアライブ:
+           [タイプ]: rfc4306
+             [状態]: OK
+         [次の送信]: 4 秒後
+> exit  
+Connection to 10.10.1.5 closed.
+
+[まとめ] トンネル1 のパケット数：受信 0 → 11、送信 0 → 11（IPv4）。ping 5/5 応答・損失 0%。traceroute の 1 段目は vRX（10.10.1.5）、2 段目で EC2-B（10.20.1.10）に届いた。
